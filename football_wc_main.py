@@ -1,5 +1,6 @@
 import time
 import pandas as pd 
+import numpy as np
 from datetime import datetime
 import yaml
 import copy 
@@ -100,9 +101,10 @@ def main_tournament():
             team_opponent_counts = team_opponents.value_counts(normalize=True).round(3) * 100
             # add opponent for team to r32_opponent_oppotunities dict   
             r32_opponent_oppotunities[team] = team_opponent_counts
-            if not team_opponent_counts.empty:
+            # if not team_opponent_counts.empty:
+            if team == 'Netherlands':
                 # add amount of advancements.
-                print(f"{team} advanced {len(team_round_32)}/{config['simulations']['tournaments']} simulations.")
+                print(f"{team} Chance of advancement: {len(team_round_32)/config['simulations']['tournaments']*100:.1f}%")
                 print(f"Round of 32 opponents: Top 5 by %")
                 print(team_opponent_counts.head(5))    
     r32_opponent_oppotunities_df = pd.DataFrame(r32_opponent_oppotunities).fillna(0).round(3)
@@ -120,15 +122,19 @@ def main_tournament():
     # df_team_advancement zip team and R32 percentage.
     r32_team_advancement_percentage = list(df_team_advancement['R32'].round(1))
     # match team with percentage of chance that team advances in the xticks
-    r32_opponent_oppotunities_df_percentage = [f"{team} ({adv}%)" for team, adv in zip(r32_opponent_oppotunities_df_percentage, r32_team_advancement_percentage)]
+    r32_opponent_oppotunities_df_percentage = [f"{team} ({np.round(adv,0)}%)" for team, adv in zip(r32_opponent_oppotunities_df_percentage, r32_team_advancement_percentage)]
 
-    plt.xticks(ticks=range(len(r32_opponent_oppotunities_df.columns)), labels=r32_opponent_oppotunities_df_percentage, rotation=90)
-    plt.yticks(ticks=range(len(r32_opponent_oppotunities_df.index)), labels=r32_opponent_oppotunities_df.index)
+    plt.xticks(ticks=range(len(r32_opponent_oppotunities_df.columns)), labels=r32_opponent_oppotunities_df_percentage, rotation=90, size = 'x-small')
+    plt.yticks(ticks=range(len(r32_opponent_oppotunities_df.index)), labels=r32_opponent_oppotunities_df.index, size = 'x-small')
     # print text small in each cell of the heatmap with 1 decimal
     for i in range(len(r32_opponent_oppotunities_df.index)):
         for j in range(len(r32_opponent_oppotunities_df.columns)):
-            plt.text(j, i, f"{r32_opponent_oppotunities_df.iloc[i, j]:.01f}", ha="center", va="center", color="black", size = 'xx-small')
+            # if value is 0.0 do not print.
+            if r32_opponent_oppotunities_df.iloc[i, j] != 0.0:
+                plt.text(j, i, f"{r32_opponent_oppotunities_df.iloc[i, j]:.01f}", ha="center", va="center", color="black", size = 'xx-small')
     plt.title("Round of 32 Opponent Opportunities")
+    # plt.ylabel("Opponent")
+    # plt.xlabel("Team (Chance of Advancement to Round of 32)")
     plt.show()
     plt.savefig(f"figures/wc2026_simulation_r32_opponent_oppotunities_{datetime.now().strftime('%Y%m%d')}.png")
     plt.close()

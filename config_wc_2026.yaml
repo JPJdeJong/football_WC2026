@@ -9,7 +9,7 @@ weigths:
   team_ko_defense_strength: 1 # multiplier value for team defense strength in knockout stages. Higher value means more weight on defense strength. Lower value means more weight on attack strength.
 simulations:
   match: 1
-  tournaments : 100
+  tournaments : 1000
   max_goals: 7
   ko_max_goals: 5
 show: # print overviews or not. 
