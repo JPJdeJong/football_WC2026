@@ -143,8 +143,10 @@ def main_tournament():
                 # if value is 0.0 do not print.
                 if r32_opponent_oppotunities_df.iloc[i, j] != 0.0:
                     plt.text(j, i, f"{r32_opponent_oppotunities_df.iloc[i, j]:.01f}", ha="center", va="center", color="black", size = 'xx-small')
-
-        plt.title("Round of 32 Opponent Opportunities")
+        # add x-axis label as "Teams" and y-axis label as "Opponents"
+        plt.xlabel("Team", fontsize=12)
+        plt.ylabel("Potential opponents of team on X-axis", fontsize=12)
+        plt.title(f"Chance of meeting opponents in Round of 32 for each team in the 2026 World Cup, based on {config.get('simulations').get('tournaments')} simulations", fontsize=14)
         plt.savefig(f"figures/wc2026_simulation_r32_opponent_oppotunities_{datetime.now().strftime('%Y%m%d')}.png")
         plt.close()
 
