@@ -1,0 +1,21 @@
+data:
+  actual_results : True # if False, then pre-tournament simulations. True is actual results taken into account.
+weigths:
+  elo: 1
+  mv: 1
+  team_attack_strength: 3
+  team_defense_strength: 1
+  team_ko_attack_strength: 1
+  team_ko_defense_strength: 1
+simulations:
+  match: 1
+  tournaments : 1000
+  max_goals: 9
+  ko_max_goals: 5
+files:
+  load:
+    team_overview: 'data/raw/football/world_cup_2026_team_overview.xlsx'
+  save:
+    save_predictions: True
+    tournament_predictions: 'data/processed/football/world_cup_2026_tournament_predictions'
+    match_predictions: 'data/processed/football/world_cup_2026_match_predictions'
