@@ -33,7 +33,7 @@ def save_data(df_team_advancement, tournament_predictions_df, third_placement_in
     - third_place_df: DataFrame containing the information about the teams that finished in third place in their groups, which is saved to an Excel file.
     """
     
-    # sort df team advancement by Winner, then Final, then SF, then QF, then R16, then R32 in descending order and print the top 10 teams.
+    # sort df team advancement by Winner, then Final, then SF, then QF, then R16, then R32 in descending order
     df_team_advancement_sorted = df_team_advancement.sort_values(["Winner", "Final", "SF", "QF", "R16", "R32"], ascending=False)
 
     # save to excel file
@@ -97,8 +97,7 @@ def combine_strengths(team_strength_dict, weight_attack=1, weight_defence=1, wei
         # update the team strength in the team_strength_dict with the combined strength values with keys 'team_total_attack_strength' and 'team_total_defence_strength'
         strength['team_total_attack_strength'] = combined_attack_strength
         strength['team_total_defence_strength'] = combined_defence_strength
-        # print(f"{team} {strength['team_total_attack_strength']} {strength['team_total_defence_strength']}")
- 
+        
 def update_elo_ratings(team_strength_dict = dict, team1=None, team2=None, most_common_score=None, k_factor=60):
     # This function would take the current Elo ratings of both teams and the most common score from the simulations to update the Elo ratings based on the match outcome.
     # Extract home and away goals from the most common score
@@ -129,7 +128,6 @@ def update_elo_ratings(team_strength_dict = dict, team1=None, team2=None, most_c
     new_elo_a = elo_a + k_factor * (outcome_a - expected_a)
     new_elo_b = elo_b + k_factor * (outcome_b - expected_b)
     # print initial elo of team 1 and updated elo.
-    # print(f"Initial Elo - {team1}: {elo_a}, Updated Elo: {np.floor(new_elo_a)}")
     # update the elo ratings in the team_strength_dict for team1 and team2 with the new elo ratings, round to the nearest integer.
     team_strength_dict[team1]['elo_rating'] = int(np.floor(new_elo_a))
     team_strength_dict[team2]['elo_rating'] = int(np.floor(new_elo_b))

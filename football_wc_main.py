@@ -37,7 +37,6 @@ def main_tournament():
     # initialize team_strength dict with team information
     team_strength_dict, initial_elo_ratings = team_information(team_overview_df, config)
     init_team_strength_dict = copy.deepcopy(team_strength_dict)  # make a copy of the initial team strength dict to reset after each simulation run
-
     tournaments, tournament_predictions, third_placement_info = run_tournament(config, 
                                                                                matches_df, 
                                                                                matches_df_init, 
@@ -59,8 +58,9 @@ def main_tournament():
         for round in ["R32", "R16", "QF", "SF", "Final", "Winner"]:
             df_team_advancement.loc[team, round] = tournament_df[round].apply(lambda x: team in x).sum() / len(tournament_df) * 100
 
+    if config.get('show', {}).get('tournament_predictions') == True:
     #tournament_df[team] = tournament_df.apply(lambda row: team in row.values, axis=1)
-    print(df_team_advancement.sort_values(["Winner", "Final", "SF", "QF", "R16", "R32"], ascending=False))
+        print(df_team_advancement.sort_values(["Winner", "Final", "SF", "QF", "R16", "R32"], ascending=False))
      
 
     if config.get('files', {}).get('save', {}).get('save_predictions') == True:
@@ -70,18 +70,42 @@ def main_tournament():
                                                                                           fn_tournament_predictions, 
                                                                                           fn_match_predictions, config, 
                                                                                           time = time)
-        print('\n saving..\n')
+        print('\n saving files to processed folder..\n')
 
-    # print the most common score for all matches in match_predictions_total_df
-    most_common_scores = tournament_predictions_df.groupby(['home_team', 'away_team'])['most_common_score'].agg(lambda x: x.mode()[0] if not x.mode().empty else "0-0").reset_index()
-    # print value count of most common scores and divide by simulation runs 
-    # print(most_common_scores['most_common_score'].value_counts())
+    if config.get('show', {}).get('most_common_scores') == True:
+        # print the most common score for all matches in match_predictions_total_df
+        most_common_scores = tournament_predictions_df.groupby(['home_team', 'away_team'])['most_common_score'].agg(lambda x: x.mode()[0] if not x.mode().empty else "0-0").reset_index()
+        # print value count of most common scores and divide by simulation runs 
+        print(most_common_scores['most_common_score'].value_counts())
     
-    # give an overview of when you advance. Group by amount of points and get the percentage of advancement for each group. Then sort by percentage of advancement in descending order.
-    # sorted third_place df by points descending. 
-    advancement_overview = third_place_df.groupby(['points'])['advancement'].value_counts(normalize=True).unstack().fillna(0) * 100
-    advancement_overview = advancement_overview.reset_index().sort_values('points', ascending=False)
-    print(advancement_overview.sort_values('advanced', ascending=False))
+    if config.get('show', {}).get('3rd_place_predictions') == True:
+        # give an overview of when you advance. Group by amount of points and get the percentage of advancement for each group. Then sort by percentage of advancement in descending order.
+        # sorted third_place df by points descending. 
+        advancement_overview_3rd = third_place_df.groupby(['points'])['advancement'].value_counts(normalize=True).unstack().fillna(0) * 100
+        advancement_overview_3rd = advancement_overview_3rd.reset_index().sort_values('points', ascending=False)
+        print(advancement_overview_3rd.sort_values('advanced', ascending=False))
+
+    # for every team in tournament_predictions_df, find the matches where match_label = 'Round of 32' and home_team or away_team is Netherlands. Then get the opponents of Netherlands in Round of 32 and count the chance that Netherlands is playing against the opponent in Round of 32 and divide by the number of simulations to get a percentage.
+    r32_opponent_oppotunities = {}
+    for team in teams:
+        if config.get('show', {}).get('opponent_R32_options') == True:
+            # find matches where match_label = 'Round of 32' and home_team or away_team is team.
+            team_round_32 = tournament_predictions_df[(tournament_predictions_df['match_label'] == 'Round of 32') & ((tournament_predictions_df['home_team'] == team) | (tournament_predictions_df['away_team'] == team))]
+            # get opponents of team in Round of 32 and 
+            # count the chance that team is playing against the opponent in Round of 32 and divide by the number of simulations to get a percentage
+            team_opponents = team_round_32.apply(lambda row: row['away_team'] if row['home_team'] == team else row['home_team'], axis=1)
+            # round values by 1 decimal and sort by percentage in descending order
+            team_opponent_counts = team_opponents.value_counts(normalize=True).round(3) * 100
+            # add opponent for team to r32_opponent_oppotunities dict   
+            r32_opponent_oppotunities[team] = team_opponent_counts
+            if not team_opponent_counts.empty:
+                # add amount of advancements.
+                print(f"{team} advanced {len(team_round_32)}/{config['simulations']['tournaments']} simulations.")
+                print(f"Round of 32 opponents: Top 5 by %")
+                print(team_opponent_counts.head(5))    
+    r32_opponent_oppotunities_df = pd.DataFrame(r32_opponent_oppotunities).fillna(0).round(3)
+    # save r32_opponent_oppotunities_df to excel file
+    r32_opponent_oppotunities_df.to_excel("data/processed/football/wc2026_simulation_r32_opponent_oppotunities.xlsx", index=True)  
 
 def run_tournament(config = dict, matches_df = pd.DataFrame, matches_df_init = pd.DataFrame, team_strength_dict = dict, initial_elo_ratings = dict, init_team_strength_dict = dict):
     """
@@ -155,7 +179,9 @@ def run_tournament(config = dict, matches_df = pd.DataFrame, matches_df_init = p
 
         match_predictions_total_df = pd.concat([match_predictions_df, ko_match_predictions], ignore_index=True)
         tournament_predictions.append(match_predictions_total_df)
-      
+
+        # 
+
     return tournaments,  tournament_predictions, third_placement_info
 
 def team_information(team_overview_df, config):

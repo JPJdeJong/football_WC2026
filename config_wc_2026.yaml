@@ -2,16 +2,22 @@ data:
   actual_results : True # if False, then pre-tournament simulations. True is actual results taken into account.
 weigths:
   elo: 1
-  mv: 1
-  team_attack_strength: 3
-  team_defense_strength: 1
-  team_ko_attack_strength: 1
-  team_ko_defense_strength: 1
+  mv: 1 # Weight for market value. Market value is top 5 players per line, per team. 
+  team_attack_strength: 3 # multiplier value for team attack strength. Higher value means more weight on attack strength. Lower value means more weight on defense strength.
+  team_defense_strength: 1 # multiplier value for team defense strength. Higher value means more weight on defense strength. Lower value means more weight on attack strength.
+  team_ko_attack_strength: 3 # multiplier value for team attack strength in knockout stages. Higher value means more weight on attack strength. Lower value means more weight on defense strength.
+  team_ko_defense_strength: 1 # multiplier value for team defense strength in knockout stages. Higher value means more weight on defense strength. Lower value means more weight on attack strength.
 simulations:
   match: 1
   tournaments : 1000
-  max_goals: 9
+  max_goals: 7
   ko_max_goals: 5
+show: # print overviews or not. 
+  match_predictions: False
+  tournament_predictions: True
+  most_common_scores: False
+  3rd_place_predictions: True
+  opponent_R32_options: True
 files:
   load:
     team_overview: 'data/raw/football/world_cup_2026_team_overview.xlsx'

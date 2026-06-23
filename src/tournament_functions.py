@@ -63,8 +63,8 @@ def main_group_stage_predictions(matches_df, team_strength_dict = dict, config =
         for index, row in matches.iterrows():
             team_a_strength = team_strength_dict.get(row['home_team_id'], {"team_total_attack_strength": 1, "team_total_defence_strength": 1})
             team_b_strength = team_strength_dict.get(row['away_team_id'], {"team_total_attack_strength": 1, "team_total_defence_strength": 1})
-            weight_team_attack = config.get('weights', {}).get('team_attack_strength', 1)
-            weight_team_defense = config.get('weights', {}).get('team_defense_strength', 1)
+            weight_team_attack = config.get('weights', {}).get('team_attack_strength', 2)
+            weight_team_defense = config.get('weights', {}).get('team_defense_strength', 2)
             match_outcome = simulate_match(team_h = row['home_team_id'],
                                             team_a = row['away_team_id'],
                                             att_h = weight_team_attack * team_a_strength["team_total_attack_strength"], 
@@ -112,7 +112,10 @@ def main_group_stage_predictions(matches_df, team_strength_dict = dict, config =
         normalize_column(team_strength_dict, column_name='attack_mv')
         normalize_column(team_strength_dict, column_name='defence_mv')
         normalize_column(team_strength_dict, column_name='elo_rating')
-        combine_strengths(team_strength_dict, weight_attack=config.get('weights', {}).get('mv', 0.4), weight_defence=config.get('weights', {}).get('mv', 0.4), weight_elo=config.get('weights', {}).get('elo', 0.6))
+        combine_strengths(team_strength_dict, 
+                          weight_attack=config.get('weights', {}).get('mv', 0.4), 
+                          weight_defence=config.get('weights', {}).get('mv', 0.4), 
+                          weight_elo=config.get('weights', {}).get('elo', 0.6))
     return pd.DataFrame(match_predictions), team_strength_dict
 
 
@@ -454,9 +457,9 @@ def main_knockout_updated(matches_df=None, matches_df_raw=None, teams_strength_d
         group_df = matches_df[matches_df['match_label'] == group]
         group_dfs.append((group, group_df))
 
+    # generate standings per group.
     standings_lst = []
     for group_name, group_df in group_dfs:
-        # print(f"\n--- Standings for {group_name} ---")
         standings_df = generate_group_standings(group_df, teams_strength_dict)
         standings_lst.append((group_name, standings_df))
   
