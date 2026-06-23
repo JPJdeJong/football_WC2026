@@ -30,7 +30,12 @@ cd football_WC2026
 
 ### Usage
 
-[Add specific usage instructions]
+in the config_wc_2026.yaml you can set several parameters to adjust.
+e.g. actual_results : False, will give you the opportunity to run a pre-tournament simulation
+Adjusting the weights will adjust values for team strength.
+
+In Simulations you can set how often a match should be played, and how many Monte-Carlo simulations you make.
+The max_goals parameter sets the maximum amount of goals for the Poisson distributed match simulation.
 
 ## Project Structure
 
@@ -38,12 +43,13 @@ cd football_WC2026
 football_WC2026/
 ├── README.md
 ├── data/
-├── scri/
+├── src/
 └── doc/
 ```
 
 ## Contributing
 
+Just hit me a message.
 
 ## License
 
