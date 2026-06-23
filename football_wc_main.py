@@ -3,6 +3,8 @@ import pandas as pd
 from datetime import datetime
 import yaml
 import copy 
+import matplotlib.pyplot as plt
+# import seaborn as sns
 
 from src.generic_functions import normalize_column, combine_strengths, update_elo_ratings, load_data, save_data, fn
 from src.tournament_functions import main_group_stage_predictions, main_knockout_updated as knockout_main
@@ -106,6 +108,30 @@ def main_tournament():
     r32_opponent_oppotunities_df = pd.DataFrame(r32_opponent_oppotunities).fillna(0).round(3)
     # save r32_opponent_oppotunities_df to excel file
     r32_opponent_oppotunities_df.to_excel("data/processed/football/wc2026_simulation_r32_opponent_oppotunities.xlsx", index=True)  
+
+    # save r32 as heatmap in a png file in figures folder.
+    plt.figure(figsize=(20, 16))
+    # create matplotlib heatmap --no seaborn
+    plt.imshow(r32_opponent_oppotunities_df, cmap="YlGnBu", aspect="auto")
+    plt.colorbar()
+    # show in xticks % of chance that team advances
+    r32_opponent_oppotunities_df_percentage = list(r32_opponent_oppotunities_df.columns)
+    #zip r32_opponent_oppotunities_df_percentage with the percentage of chance that team advances in the xticks
+    # df_team_advancement zip team and R32 percentage.
+    r32_team_advancement_percentage = list(df_team_advancement['R32'].round(1))
+    # match team with percentage of chance that team advances in the xticks
+    r32_opponent_oppotunities_df_percentage = [f"{team} ({adv}%)" for team, adv in zip(r32_opponent_oppotunities_df_percentage, r32_team_advancement_percentage)]
+
+    plt.xticks(ticks=range(len(r32_opponent_oppotunities_df.columns)), labels=r32_opponent_oppotunities_df_percentage, rotation=90)
+    plt.yticks(ticks=range(len(r32_opponent_oppotunities_df.index)), labels=r32_opponent_oppotunities_df.index)
+    # print text small in each cell of the heatmap with 1 decimal
+    for i in range(len(r32_opponent_oppotunities_df.index)):
+        for j in range(len(r32_opponent_oppotunities_df.columns)):
+            plt.text(j, i, f"{r32_opponent_oppotunities_df.iloc[i, j]:.01f}", ha="center", va="center", color="black", size = 'xx-small')
+    plt.title("Round of 32 Opponent Opportunities")
+    plt.show()
+    plt.savefig(f"figures/wc2026_simulation_r32_opponent_oppotunities_{datetime.now().strftime('%Y%m%d')}.png")
+    plt.close()
 
 def run_tournament(config = dict, matches_df = pd.DataFrame, matches_df_init = pd.DataFrame, team_strength_dict = dict, initial_elo_ratings = dict, init_team_strength_dict = dict):
     """
