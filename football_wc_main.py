@@ -93,7 +93,7 @@ def main_tournament():
     for team in teams:
         if config.get('show', {}).get('opponent_R32_options') == True:
             # find matches where match_label = 'Round of 32' and home_team or away_team is team.
-            team_round_32 = tournament_predictions_df[(tournament_predictions_df['match_label'] == 'Round of 32') & ((tournament_predictions_df['home_team'] == team) | (tournament_predictions_df['away_team'] == team))]
+            team_round_32 = tournament_predictions_df[(tournament_predictions_df['match_label'] == 'Round of 32') & ((tournament_predictions_df['home_team'] == team) | (tournament_predictions_df['away_team'] == team))]           
             # get opponents of team in Round of 32 and 
             # count the chance that team is playing against the opponent in Round of 32 and divide by the number of simulations to get a percentage
             team_opponents = team_round_32.apply(lambda row: row['away_team'] if row['home_team'] == team else row['home_team'], axis=1)
@@ -111,33 +111,42 @@ def main_tournament():
     # save r32_opponent_oppotunities_df to excel file
     r32_opponent_oppotunities_df.to_excel("data/processed/football/wc2026_simulation_r32_opponent_oppotunities.xlsx", index=True)  
 
-    # save r32 as heatmap in a png file in figures folder.
-    plt.figure(figsize=(20, 16))
-    # create matplotlib heatmap --no seaborn
-    plt.imshow(r32_opponent_oppotunities_df, cmap="YlGnBu", aspect="auto")
-    plt.colorbar()
-    # show in xticks % of chance that team advances
-    r32_opponent_oppotunities_df_percentage = list(r32_opponent_oppotunities_df.columns)
-    #zip r32_opponent_oppotunities_df_percentage with the percentage of chance that team advances in the xticks
-    # df_team_advancement zip team and R32 percentage.
-    r32_team_advancement_percentage = list(df_team_advancement['R32'].round(1))
-    # match team with percentage of chance that team advances in the xticks
-    r32_opponent_oppotunities_df_percentage = [f"{team} ({np.round(adv,0)}%)" for team, adv in zip(r32_opponent_oppotunities_df_percentage, r32_team_advancement_percentage)]
-
-    plt.xticks(ticks=range(len(r32_opponent_oppotunities_df.columns)), labels=r32_opponent_oppotunities_df_percentage, rotation=90, size = 'x-small')
-    plt.yticks(ticks=range(len(r32_opponent_oppotunities_df.index)), labels=r32_opponent_oppotunities_df.index, size = 'x-small')
-    # print text small in each cell of the heatmap with 1 decimal
-    for i in range(len(r32_opponent_oppotunities_df.index)):
+    if config.get('files', {}).get('figures', {}).get('r32_opponents') == True:
+        # save r32 as heatmap in a png file in figures folder.
+        plt.figure(figsize=(20, 16))
+        # create matplotlib heatmap --no seaborn
+        # if all values in column are 0, then color the column red. Otherwise, use cmap YlGnBu. Use aspect auto to make the heatmap fit the figure.
+        # for each column in r32_opponent_oppotunities_df, if all values are 0, then color the column red. Otherwise, use cmap YlGnBu. Use aspect auto to make the heatmap fit the figure.
         for j in range(len(r32_opponent_oppotunities_df.columns)):
-            # if value is 0.0 do not print.
-            if r32_opponent_oppotunities_df.iloc[i, j] != 0.0:
-                plt.text(j, i, f"{r32_opponent_oppotunities_df.iloc[i, j]:.01f}", ha="center", va="center", color="black", size = 'xx-small')
-    plt.title("Round of 32 Opponent Opportunities")
-    # plt.ylabel("Opponent")
-    # plt.xlabel("Team (Chance of Advancement to Round of 32)")
-    plt.show()
-    plt.savefig(f"figures/wc2026_simulation_r32_opponent_oppotunities_{datetime.now().strftime('%Y%m%d')}.png")
-    plt.close()
+            if (r32_opponent_oppotunities_df.iloc[:, j] == 0).all():
+                plt.bar(x=j, height=len(r32_opponent_oppotunities_df.index), color='darkred', align ='center', )
+            else:
+                cmap = plt.get_cmap("YlGnBu")
+                plt.imshow(r32_opponent_oppotunities_df, cmap=cmap, aspect="auto")    
+
+        # label colorbar as % of chance of meeting opponents in R32.
+        cbar = plt.colorbar()
+        cbar.set_label('% Chance of Meeting Opponents in R32', rotation=270, labelpad=15)
+        # show in xticks % of chance that team advances
+        r32_opponent_oppotunities_df_percentage = list(r32_opponent_oppotunities_df.columns)
+        #zip r32_opponent_oppotunities_df_percentage with the percentage of chance that team advances in the xticks
+        # df_team_advancement zip team and R32 percentage.
+        r32_team_advancement_percentage = list(df_team_advancement['R32'].round(1))
+        # match team with percentage of chance that team advances in the xticks
+        r32_opponent_oppotunities_df_percentage = [f"{team} ({np.round(adv,0)}%)" for team, adv in zip(r32_opponent_oppotunities_df_percentage, r32_team_advancement_percentage)]
+
+        plt.xticks(ticks=range(len(r32_opponent_oppotunities_df.columns)), labels=r32_opponent_oppotunities_df_percentage, rotation=90, size = 'x-small')
+        plt.yticks(ticks=range(len(r32_opponent_oppotunities_df.index)), labels=r32_opponent_oppotunities_df.index, size = 'x-small')
+        # print text small in each cell of the heatmap with 1 decimal
+        for i in range(len(r32_opponent_oppotunities_df.index)):
+            for j in range(len(r32_opponent_oppotunities_df.columns)):
+                # if value is 0.0 do not print.
+                if r32_opponent_oppotunities_df.iloc[i, j] != 0.0:
+                    plt.text(j, i, f"{r32_opponent_oppotunities_df.iloc[i, j]:.01f}", ha="center", va="center", color="black", size = 'xx-small')
+
+        plt.title("Round of 32 Opponent Opportunities")
+        plt.savefig(f"figures/wc2026_simulation_r32_opponent_oppotunities_{datetime.now().strftime('%Y%m%d')}.png")
+        plt.close()
 
 def run_tournament(config = dict, matches_df = pd.DataFrame, matches_df_init = pd.DataFrame, team_strength_dict = dict, initial_elo_ratings = dict, init_team_strength_dict = dict):
     """

@@ -19,6 +19,8 @@ show: # print overviews or not.
   3rd_place_predictions: True
   opponent_R32_options: True
 files:
+  figures:
+    r32_opponents: True
   load:
     team_overview: 'data/raw/football/world_cup_2026_team_overview.xlsx'
   save:
